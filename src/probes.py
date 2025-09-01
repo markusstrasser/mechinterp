@@ -10,17 +10,34 @@ def probe(name):
         return func
     return decorator
 
-# @probe("performance")
-# @torch.no_grad()
-# def performance_probe(model, data, labels, **kwargs):
-#     # ... implementation
-#     return {"test_loss": loss, "test_acc": acc}
-#
-# @probe("l2_norm")
-# @torch.no_grad()
-# def l2_norm_probe(model, **kwargs):
-#     # ... implementation
-#     return {"l2_norm": l2_norm}
+@probe("performance")
+@torch.no_grad()
+def performance_probe(model, test_data, test_labels, **kwargs):
+    """Compute test loss and accuracy."""
+    from torch import nn
+    model.eval()
+    logits = model(test_data)[:, -1, :]
+    test_loss = nn.CrossEntropyLoss()(logits, test_labels).item()
+    test_acc = (torch.argmax(logits, dim=-1) == test_labels).float().mean().item()
+    return {"test_loss": test_loss, "test_acc": test_acc}
+
+@probe("l2_norm")
+@torch.no_grad()
+def l2_norm_probe(model, **kwargs):
+    """Track L2 norm of model parameters."""
+    l2_norm = sum(p.pow(2).sum() for p in model.parameters()).item()
+    return {"l2_norm": l2_norm}
+
+@probe("sparsity")
+@torch.no_grad()
+def sparsity_probe(model, config, **kwargs):
+    """Track sparsity of embedding and unembedding matrices."""
+    p = config["p"]
+    W_E = model.W_E[:p, :]
+    W_U = model.W_U[:, :p]
+    gini_embed = gini(W_E).item()
+    gini_unembed = gini(W_U.T).item()
+    return {"gini_embed": gini_embed, "gini_unembed": gini_unembed}
 
 def gini(x):
     """
@@ -43,8 +60,9 @@ def gini(x):
     # The Gini formula, normalized.
     return (n + 1 - 2 * torch.sum(cumx) / cumx[-1]) / n
 
+@probe("mechanics")
 @torch.no_grad()
-def analyze_grokking_mechanics(model, test_data, config):
+def mechanics_probe(model, test_data, config, **kwargs):
     """The actual mechanistic story of grokking"""
     # Cache all activations in one forward pass
     _, cache = model.run_with_cache(test_data)  # subsample for speed
@@ -80,8 +98,11 @@ def analyze_grokking_mechanics(model, test_data, config):
         'neuron_specialization': neuron_specialization.item()
     }
 
-def analyze_fourier_structure(model, p):
+@probe("fourier_structure")
+@torch.no_grad()
+def fourier_structure_probe(model, config, **kwargs):
     """Track emergence of specific modular arithmetic frequencies"""
+    p = config["p"]
     W_E = model.W_E[:p, :]
     W_U = model.W_U[:, :p]
 
