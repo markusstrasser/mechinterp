@@ -15,16 +15,16 @@ def create_model(config: TrainConfig) -> HookedTransformer:
     - n_ctx = 3: The context length is fixed at 3 because our input is always `(a, b, =)`.
     """
     model_config = HookedTransformerConfig(
-        n_layers=config["n_layers"],
-        n_heads=config["n_heads"],
-        d_model=config["d_model"],
-        d_head=config["d_model"] // config["n_heads"],
-        d_mlp=config["d_ffn"],
-        d_vocab=config["p"] + 1,
+        n_layers=config.n_layers,
+        n_heads=config.n_heads,
+        d_model=config.d_model,
+        d_head=config.d_model // config.n_heads,
+        d_mlp=config.d_ffn,
+        d_vocab=config.p + 1,
         n_ctx=3,
         act_fn="relu",
         normalization_type=None,
-        device=config["device"],
+        device=config.device,
     )
     
     model = HookedTransformer(model_config)
