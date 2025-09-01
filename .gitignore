@@ -3,9 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-_old
+.scratch
 
-./_old
 .env
 # C extensions
 *.so

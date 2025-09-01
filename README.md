@@ -6,7 +6,7 @@
 * 3 Models: "no", "almost" "yes" , ... maybe "yes, easily"
 * 
 
-```aiignore
+```
 ├── configs/
 │   └── grokking_p113.yaml
 ├── notebooks/

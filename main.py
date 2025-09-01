@@ -1,8 +1,6 @@
 import wandb
 from environs import Env
 
-
-
 def main():
     from environs import Env
     env = Env()

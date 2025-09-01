@@ -1,7 +1,26 @@
 import torch
-import torch.nn as nn
-from transformer_lens import HookedTransformer
 
+
+PROBE_REGISTRY = {}
+
+def probe(name):
+    """A decorator to register a function as a probe."""
+    def decorator(func):
+        PROBE_REGISTRY[name] = func
+        return func
+    return decorator
+
+# @probe("performance")
+# @torch.no_grad()
+# def performance_probe(model, data, labels, **kwargs):
+#     # ... implementation
+#     return {"test_loss": loss, "test_acc": acc}
+#
+# @probe("l2_norm")
+# @torch.no_grad()
+# def l2_norm_probe(model, **kwargs):
+#     # ... implementation
+#     return {"l2_norm": l2_norm}
 
 def gini(x):
     """
@@ -85,45 +104,6 @@ def analyze_fourier_structure(model, p):
         'freq_concentration': freq_concentration.item(),
         'dominant_freqs': top_k_freqs.indices.tolist()
     }
-
-
-
-@torch.no_grad()
-def evaluate(model: HookedTransformer, test_data, test_labels, config: dict):
-    """
-    Theory:
-    - Test Accuracy vs. Loss: The key metric for grokking. We expect test accuracy to remain near random
-      for a long time, even as training loss drops. The "grokking" moment is when test accuracy
-      suddenly jumps to ~100%.
-    - L2 Norm: This is the sum of the squares of all model parameters. It's a measure of the model's complexity.
-      In grokking literature, it's observed that models often find a simpler (lower L2 norm) solution
-      during the phase transition to generalization.
-    - Gini Coefficients (Embed/Unembed): Tracking the sparsity of the embedding (W_E) and
-      unembedding (W_U) matrices. An increase in Gini suggests the model is learning to represent
-      numbers in a more structured, sparse way (e.g., via a Fourier basis) rather than as
-      opaque, dense vectors.
-    """
-    model.eval()
-    logits = model(test_data)[:, -1, :]
-    test_loss = nn.CrossEntropyLoss()(logits, test_labels).item()
-    test_acc = (
-        (torch.argmax(logits, dim=-1) == test_labels).float().mean().item()
-    )
-    l2_norm = sum(p.pow(2).sum() for p in model.parameters()).item()
-
-    W_E = model.W_E[: config["p"], :]
-    W_U = model.W_U[:, : config["p"]]
-    gini_embed = gini(W_E).item()
-    gini_unembed = gini(W_U.T).item()
-
-    metrics = {
-        "test_loss": test_loss,
-        "test_acc": test_acc,
-        "l2_norm": l2_norm,
-        "gini_embed": gini_embed,
-        "gini_unembed": gini_unembed,
-    }
-    return {**metrics, **analyze_grokking_mechanics(model, test_data, config), "fourier_structure": analyze_fourier_structure(model, config['p'])}
 
 
 
