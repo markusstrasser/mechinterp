@@ -3,6 +3,7 @@ from torch import nn as nn
 from transformer_lens import HookedTransformer, HookedTransformerConfig
 
 from .types import TrainConfig
+from .probes import gini, analyze_grokking_mechanics, analyze_fourier_structure
 
 DEFAULT_CONFIG={
     "p": 113,
