@@ -117,6 +117,31 @@ def analyze_grokking_mechanics(model, test_data, config):
         'neuron_specialization': neuron_specialization.item()
     }
 
+def analyze_fourier_structure(model, p):
+    """Track emergence of specific modular arithmetic frequencies"""
+    W_E = model.W_E[:p, :]
+    W_U = model.W_U[:, :p]
+
+    # The product W_U @ W_E.T should become circulant for modular arithmetic
+    W_logit = W_U.T @ W_E.T
+
+    # Check if it's learning the cyclic group structure
+    # In frequency domain, circulant = diagonal
+    fft_logit = torch.fft.fft2(W_logit)
+    diagonality = (torch.abs(fft_logit.diag()).sum() /
+                   torch.abs(fft_logit).sum())
+
+    # Track specific frequency components that matter for mod p
+    fft_embed = torch.fft.fft(W_E, dim=0)
+    top_k_freqs = torch.topk(torch.abs(fft_embed).mean(1), k=5)
+    freq_concentration = top_k_freqs.values.sum() / torch.abs(fft_embed).sum()
+
+    return {
+        'circulant_score': diagonality.item(),
+        'freq_concentration': freq_concentration.item(),
+        'dominant_freqs': top_k_freqs.indices.tolist()
+    }
+
 @torch.no_grad()
 def evaluate(model: HookedTransformer, test_data, test_labels, config: dict):
     """
@@ -152,7 +177,7 @@ def evaluate(model: HookedTransformer, test_data, test_labels, config: dict):
         "gini_embed": gini_embed,
         "gini_unembed": gini_unembed,
     }
-    return {**metrics, **analyze_grokking_mechanics(model, test_data, config)}
+    return {**metrics, **analyze_grokking_mechanics(model, test_data, config), "fourier_structure": analyze_fourier_structure(model, config['p'])}
 
 
 def train(config):
@@ -215,6 +240,7 @@ def train(config):
         'attn_periodicity': [],
         'logit_attribution': [],
         'neuron_specialization': [],
+        'fourier_structure': []
     }
 
     # Pretty-print table header
@@ -222,6 +248,7 @@ def train(config):
         f"{'Step':>6} | {'Time(s)':>8} | {'TrainLoss':>9} | {'TestLoss':>8} | "
         f"{'TestAcc':>7} | {'L2Norm':>10} | {'Gini(E)':>7} | {'Gini(U)':>7} | "
         f"{'FourierS':>8} | {'LogitDir':>8} | {'LogitMLP':>8} | {'LogitAttn':>9} | {'NeuronSp':>8}"
+        f"{'FourierC':>8} | {'FreqConc':>8} | {'Freqs':>10}"
     )
     separator = "-" * len(header)
     print(header)
@@ -261,7 +288,7 @@ def train(config):
             # history['attn_periodicity'].append(metrics['attn_periodicity'])
             history['logit_attribution'].append(metrics['logit_attribution'])
             history['neuron_specialization'].append(metrics['neuron_specialization'])
-
+            history['fourier_structure'].append(metrics['fourier_structure'])
             # Extract scalar components for printing
             la = metrics['logit_attribution']
             la_direct = la.get('direct', float('nan'))
@@ -275,6 +302,7 @@ def train(config):
                 f"{metrics['l2_norm']:10.4f} | {metrics['gini_embed']:7.4f} | {metrics['gini_unembed']:7.4f} | "
                 f"{metrics['fourier_sparsity']:8.4f} | {la_direct:8.4f} | {la_mlp:8.4f} | {la_attn:9.4f} | "
                 f"{metrics['neuron_specialization']:8.4f}"
+f"{metrics['fourier_structure']['circulant_score']:8.4f} | {metrics['fourier_structure']['freq_concentration']:8.4f} | {str(metrics['fourier_structure']['dominant_freqs']):10}"
             )
 
     # Return the trained model AND the full history of metrics

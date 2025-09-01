@@ -40,7 +40,7 @@ DEFAULT_CONFIG={
     "d_model": 32,
     "d_ffn": 128,
     "lr": 1e-3,
-    "weight_decay": 4,
+    "weight_decay": 1,
     "steps": 60001,
     "eval_interval": 1000,
     "seed": 43,
@@ -65,7 +65,7 @@ def main():
 
 if __name__ == "__main__":
     # Local run preserves old behavior for convenience.
-    cfg={**DEFAULT_CONFIG, "steps": 1001}
+    cfg={**DEFAULT_CONFIG, "steps": 10001}
     model, history = train(cfg)
     state = {k: v.detach().cpu() for k, v in model.state_dict().items()}
     # History from model_setup.py is numeric lists already; safe to return.
