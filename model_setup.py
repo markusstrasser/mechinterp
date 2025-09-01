@@ -1,9 +1,8 @@
 import time
-
-import numpy as np
 import torch
 import torch.nn as nn
 from transformer_lens import HookedTransformer, HookedTransformerConfig
+
 
 def generate_dataset(config: dict):
     """
@@ -123,8 +122,6 @@ def train(config):
 
     starttime = time.time()
     torch.manual_seed(config["seed"])
-    np.random.seed(config["seed"])
-
     # Theory: Model Configuration
     # - Small Model: The model is intentionally small (1 layer, small d_model). This makes it
     #   harder to simply memorize the entire p*p table via brute force, encouraging it to find
@@ -185,11 +182,7 @@ def train(config):
     separator = "-" * len(header)
     print(header)
     print(separator)
-
-    for step in range(config["steps"]):
-        model.train()
-        logits = model(train_data)[:, -1, :]
-
+    loss_fn = nn.CrossEntropyLoss()
         # Theory: Loss Calculation
         # - The choice `nn.CrossEntropyLoss()(logits, train_labels)` computes loss over all p+1
         #   possible output tokens. This means the model is penalized if it assigns high probability
@@ -198,33 +191,32 @@ def train(config):
         #   The comment in your original code suggests this has an effect on the Gini coefficient,
         #   likely because forcing the logit for token 'p' to be low might distribute probability
         #   mass differently across the other tokens, affecting sparsity.
-        loss = nn.CrossEntropyLoss()(logits, train_labels)
 
-        optimizer.zero_grad()
+    for step in range(config["steps"]):
+        model.train()
+        logits = model(train_data)[:, -1, :]
+        loss = loss_fn(logits, train_labels)
+
+        optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
 
-
-        metrics = evaluate(model, test_data, test_labels, config)
-        metrics["train_loss"] = loss.item()
-
-        # Append current metrics to the history object
-        history["steps"].append(step)
-        history["train_loss"].append(metrics["train_loss"])
-        history["test_loss"].append(metrics["test_loss"])
-        history["test_acc"].append(metrics["test_acc"])
-        history["l2_norm"].append(metrics["l2_norm"])
-        history["gini_embed"].append(metrics["gini_embed"])
-        history["gini_unembed"].append(metrics["gini_unembed"])
-
         if step % config['eval_interval'] == 0:
+            metrics = evaluate(model, test_data, test_labels, config)  # <-- now gated
+            metrics["train_loss"] = loss.item()
+
+            history["steps"].append(step)
+            history["train_loss"].append(metrics["train_loss"])
+            history["test_loss"].append(metrics["test_loss"])
+            history["test_acc"].append(metrics["test_acc"])
+            history["l2_norm"].append(metrics["l2_norm"])
+            history["gini_embed"].append(metrics["gini_embed"])
+            history["gini_unembed"].append(metrics["gini_unembed"])
+
             elapsed = time.time() - starttime
-            print(
-                f"{step:6d} | {elapsed:8.2f} | "
-                f"{metrics['train_loss']:9.4f} | {metrics['test_loss']:8.4f} | "
-                f"{metrics['test_acc']:7.4f} | {metrics['l2_norm']:10.4f} | "
-                f"{metrics['gini_embed']:7.4f} | {metrics['gini_unembed']:7.4f}"
-            )
+            print(f"{step:6d} | {elapsed:8.2f} | {metrics['train_loss']:9.4f} | "
+                  f"{metrics['test_loss']:8.4f} | {metrics['test_acc']:7.4f} | "
+                  f"{metrics['l2_norm']:10.4f} | {metrics['gini_embed']:7.4f} | {metrics['gini_unembed']:7.4f}")
 
     # Return the trained model AND the full history of metrics
     return model, history

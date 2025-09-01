@@ -10,6 +10,8 @@ _old
 # C extensions
 *.so
 
+runs/*
+./runs
 # Distribution / packaging
 .Python
 build/
