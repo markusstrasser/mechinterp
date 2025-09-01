@@ -1,6 +1,4 @@
 import torch
-
-
 def generate_dataset(config: dict):
     """
     Generates the dataset for the modular arithmetic task (a + b) % p.
@@ -21,10 +19,10 @@ def generate_dataset(config: dict):
       the underlying pattern, causing test accuracy to suddenly spike.
     """
     p, n_examples, frac_train, device = (
-        config["p"],
-        config["n_examples"],
-        config["frac_train"],
-        config["device"],
+        config.p,
+        config.n_examples,
+        config.frac_train,
+        config.device,
     )
 
     # Sample 'n_examples' pairs of (a, b) directly to avoid memory issues with large p.
