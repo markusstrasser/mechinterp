@@ -1,0 +1,27 @@
+# Grokking Modular Arithmetic: Full Training Run (Flat)
+
+# --- Model ---
+p = 113
+n_layers = 1
+n_heads = 3
+d_model = 32
+d_ffn = 128
+
+# --- Training ---
+lr = 0.001
+weight_decay = 1.0
+steps = 60001
+eval_interval = 1000
+checkpoint_interval = 10000
+seed = 43
+
+# --- Dataset ---
+n_examples = 12769
+frac_train = 0.3
+
+# --- W&B ---
+wandb_project = "grokking-modular-arithmetic"
+# wandb_entity = "your_entity_name"
+
+# --- Compute ---
+# device = "cuda"

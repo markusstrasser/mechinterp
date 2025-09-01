@@ -22,9 +22,9 @@ class TrainConfig:
 
     # Execution parameters
     seed: int = 43
-    device: str = field(default_factory=lambda: 'cuda' if torch.cuda.is_available() else 'cpu')
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # W&B logging and checkpointing
+# W&B logging and checkpointing
     wandb_project: Optional[str] = None
     wandb_entity: Optional[str] = None
     eval_interval: int = 1000 # Default value, adjust as needed

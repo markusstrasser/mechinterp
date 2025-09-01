@@ -1,10 +1,9 @@
 import argparse
-import yaml
+import tomllib  # Replaces yaml
 from pathlib import Path
 import sys
 import wandb
 
-# Add project root for imports
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
@@ -13,13 +12,20 @@ from src.runner import train
 from src.types import TrainConfig
 
 def load_config(path: str) -> TrainConfig:
-    with open(path) as f:
-        config_dict = yaml.safe_load(f)
-    return TrainConfig(**config_dict)
+    """Loads a flat TOML file directly into the TrainConfig dataclass."""
+    with open(path, "rb") as f:
+        # The entire logic is now just these two lines.
+        config_dict = tomllib.load(f)
+        return TrainConfig(**config_dict)
 
 def main():
     parser = argparse.ArgumentParser(description='Train a model and save checkpoints.')
-    parser.add_argument('--config', type=str, default='config.yaml', help='Path to configuration YAML file.')
+    parser.add_argument(
+        '--config',
+        type=str,
+        required=True, # No more default, config is mandatory
+        help='Path to the TOML configuration file.'
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -28,7 +34,7 @@ def main():
     if config.wandb_project:
         wandb_run = wandb.init(
             project=config.wandb_project,
-            entity=config.wandb_entity,
+            # entity=config.wandb_entity, # Assumes wandb_entity is in your TrainConfig
             config=vars(config),
             name=f"p{config.p}_d{config.d_model}_seed{config.seed}"
         )
