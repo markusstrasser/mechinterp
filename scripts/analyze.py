@@ -12,7 +12,7 @@ sys.path.insert(0, str(project_root))
 
 from src.model import create_model
 from src.types import TrainConfig
-from src.probes import PROBE_REGISTRY
+from src.probes import probes
 from src.data import generate_dataset
 
 def main():
@@ -49,7 +49,7 @@ def main():
         "config": config,
     }
 
-    for name, probe_func in PROBE_REGISTRY.items():
+    for name, probe_func in probes.items():
         print(f"Running probe: {name}...")
         try:
             all_metrics.update(probe_func(**probe_kwargs))

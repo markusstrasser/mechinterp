@@ -1,23 +1,28 @@
+from torch import nn
 import torch
 
 # --- NEW: Simple dictionary-based probe registry ---
-PROBE_REGISTRY = {}
+probes = {}
 
-def performance_probe(model, test_data, test_labels, **kwargs):
-    # ... (implementation is the same)
-    from torch import nn
+
+def probe(fn):
+    probes[fn.__name__] = fn
+    return fn
+
+@probe
+def performance(model, test_data, test_labels, **kwargs):
     model.eval()
     logits = model(test_data)[:, -1, :]
     test_loss = nn.CrossEntropyLoss()(logits, test_labels).item()
     test_acc = (torch.argmax(logits, dim=-1) == test_labels).float().mean().item()
     return {"test_loss": test_loss, "test_acc": test_acc}
 
-def l2_norm_probe(model, **kwargs):
-    # ... (implementation is the same)
-    l2_norm = sum(p.pow(2).sum() for p in model.parameters()).item()
-    return {"l2_norm": l2_norm}
+@probe
+def l2_norm(model, **kwargs):
+    return {"l2_norm": sum(p.pow(2).sum() for p in model.parameters()).item()}
 
-def sparsity_probe(model, config, **kwargs):
+@probe
+def sparsity(model, config, **kwargs):
     # ... (implementation is the same)
     p = config.p
     W_E = model.W_E[:p, :]
@@ -26,7 +31,8 @@ def sparsity_probe(model, config, **kwargs):
     gini_unembed = gini(W_U.T).item()
     return {"gini_embed": gini_embed, "gini_unembed": gini_unembed}
 
-def mechanics_probe(model, test_data, config, **kwargs):
+@probe
+def mechanics(model, test_data, config, **kwargs):
     _, cache = model.run_with_cache(test_data)
     W_E = model.W_E[:config.p, :]
     fft = torch.fft.fft(W_E, dim=0)
@@ -49,7 +55,8 @@ def mechanics_probe(model, test_data, config, **kwargs):
         'neuron_specialization': neuron_specialization.item()
     }
 
-def fourier_structure_probe(model, config, **kwargs):
+@probe
+def fourier_structure(model, config, **kwargs):
     # ... (implementation is the same)
     p = config.p
     W_E = model.W_E[:p, :]
@@ -65,6 +72,7 @@ def fourier_structure_probe(model, config, **kwargs):
         'freq_concentration': freq_concentration.item(),
     }
 
+@probe
 def gini(x):
     # ... (implementation is the same)
     x = torch.abs(x.flatten())
@@ -73,11 +81,3 @@ def gini(x):
     n = len(x)
     cumx = torch.cumsum(x, dim=0)
     return (n + 1 - 2 * torch.sum(cumx) / cumx[-1]) / n
-
-PROBE_REGISTRY.update({
-    'performance': performance_probe,
-    'l2_norm': l2_norm_probe,
-    'sparsity': sparsity_probe,
-    'mechanics': mechanics_probe,
-    'fourier_structure': fourier_structure_probe
-})
