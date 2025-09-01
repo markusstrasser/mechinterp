@@ -58,6 +58,7 @@ def generate_dataset(config: dict):
     return train_data, train_labels, test_data, test_labels
 
 
+
 def gini(x):
     """
     Calculates the Gini coefficient, a measure of inequality or sparsity.
@@ -79,6 +80,42 @@ def gini(x):
     # The Gini formula, normalized.
     return (n + 1 - 2 * torch.sum(cumx) / cumx[-1]) / n
 
+@torch.no_grad()
+def analyze_grokking_mechanics(model, test_data, config):
+    """The actual mechanistic story of grokking"""
+    # Cache all activations in one forward pass
+    _, cache = model.run_with_cache(test_data)  # subsample for speed
+
+    # 1. Fourier Analysis - THE key insight for modular arithmetic
+    W_E = model.W_E[:config['p'], :]
+    fft = torch.fft.fft(W_E, dim=0)
+    fourier_sparsity = (torch.abs(fft) > 0.1).float().mean()  # tracks discrete Fourier basis emergence
+
+    # 2. Attention patterns - look for modular structure
+    # attn_patterns = cache['pattern', 0]  # layer 0 attention
+    # # Check if attention learns modular periodicity
+    # attn_periodicity = torch.std(attn_patterns.reshape(-1, config['p'], 3, 3).mean(0))
+
+    # 3. Direct Logit Attribution - which components contribute to correct answers
+    logits, cache = model.run_with_cache(test_data)
+    logit_lens = model.unembed(cache['resid_post', 0])  # direct path contribution
+    mlp_out = model.unembed(cache['mlp_out', 0])  # MLP contribution
+    attn_out = model.unembed(cache['attn_out', 0])  # attention contribution
+
+    # 4. Neuron specialization in MLP
+    mlp_acts = cache['post', 0]  # post-activation in MLP
+    neuron_specialization = (mlp_acts > 0).float().mean(0).std()  # how specialized are neurons
+
+    return {
+        'fourier_sparsity': fourier_sparsity.item(),
+        # 'attn_periodicity': attn_periodicity.item(),
+        'logit_attribution': {
+            'direct': logit_lens.std().item(),
+            'mlp': mlp_out.std().item(),
+            'attn': attn_out.std().item()
+        },
+        'neuron_specialization': neuron_specialization.item()
+    }
 
 @torch.no_grad()
 def evaluate(model: HookedTransformer, test_data, test_labels, config: dict):
@@ -108,13 +145,14 @@ def evaluate(model: HookedTransformer, test_data, test_labels, config: dict):
     gini_embed = gini(W_E).item()
     gini_unembed = gini(W_U.T).item()
 
-    return {
+    metrics = {
         "test_loss": test_loss,
         "test_acc": test_acc,
         "l2_norm": l2_norm,
         "gini_embed": gini_embed,
         "gini_unembed": gini_unembed,
     }
+    return {**metrics, **analyze_grokking_mechanics(model, test_data, config)}
 
 
 def train(config):
@@ -141,7 +179,7 @@ def train(config):
         device=config["device"],
     )
     model = HookedTransformer(model_config)
-
+    # model = torch.compile(model)
     # Theory: Zeroing out W_U
     # - This is a very specific and unusual choice. Typically W_U is tied to W_E or learned.
     # - By zeroing it, we force the model to learn the mapping from its internal representations
@@ -172,12 +210,18 @@ def train(config):
         "l2_norm": [],
         "gini_embed": [],
         "gini_unembed": [],
+
+        'fourier_sparsity': [],
+        'attn_periodicity': [],
+        'logit_attribution': [],
+        'neuron_specialization': [],
     }
 
     # Pretty-print table header
     header = (
         f"{'Step':>6} | {'Time(s)':>8} | {'TrainLoss':>9} | {'TestLoss':>8} | "
-        f"{'TestAcc':>7} | {'L2Norm':>10} | {'Gini(E)':>7} | {'Gini(U)':>7}"
+        f"{'TestAcc':>7} | {'L2Norm':>10} | {'Gini(E)':>7} | {'Gini(U)':>7} | "
+        f"{'FourierS':>8} | {'LogitDir':>8} | {'LogitMLP':>8} | {'LogitAttn':>9} | {'NeuronSp':>8}"
     )
     separator = "-" * len(header)
     print(header)
@@ -213,10 +257,25 @@ def train(config):
             history["gini_embed"].append(metrics["gini_embed"])
             history["gini_unembed"].append(metrics["gini_unembed"])
 
+            history['fourier_sparsity'].append(metrics['fourier_sparsity'])
+            # history['attn_periodicity'].append(metrics['attn_periodicity'])
+            history['logit_attribution'].append(metrics['logit_attribution'])
+            history['neuron_specialization'].append(metrics['neuron_specialization'])
+
+            # Extract scalar components for printing
+            la = metrics['logit_attribution']
+            la_direct = la.get('direct', float('nan'))
+            la_mlp = la.get('mlp', float('nan'))
+            la_attn = la.get('attn', float('nan'))
+
             elapsed = time.time() - starttime
-            print(f"{step:6d} | {elapsed:8.2f} | {metrics['train_loss']:9.4f} | "
-                  f"{metrics['test_loss']:8.4f} | {metrics['test_acc']:7.4f} | "
-                  f"{metrics['l2_norm']:10.4f} | {metrics['gini_embed']:7.4f} | {metrics['gini_unembed']:7.4f}")
+            print(
+                f"{step:6d} | {elapsed:8.2f} | {metrics['train_loss']:9.4f} | "
+                f"{metrics['test_loss']:8.4f} | {metrics['test_acc']:7.4f} | "
+                f"{metrics['l2_norm']:10.4f} | {metrics['gini_embed']:7.4f} | {metrics['gini_unembed']:7.4f} | "
+                f"{metrics['fourier_sparsity']:8.4f} | {la_direct:8.4f} | {la_mlp:8.4f} | {la_attn:9.4f} | "
+                f"{metrics['neuron_specialization']:8.4f}"
+            )
 
     # Return the trained model AND the full history of metrics
     return model, history
