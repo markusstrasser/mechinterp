@@ -17,15 +17,6 @@ seed: 43
 # Dataset parameters
 n_examples: 12769  # 113 * 113
 frac_train: 0.3
-
-# Probes to run during training
-probes:
-  - performance
-  - l2_norm
-  - sparsity
-  - mechanics
-  - fourier_structure
-
 # W&B settings (optional - comment out to disable)
 wandb_project: grokking-modular-arithmetic
 # wandb_entity: your_entity_name  # Optional: your W&B username/org

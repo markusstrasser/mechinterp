@@ -18,13 +18,5 @@ seed: 43
 n_examples: 12769  # 113 * 113
 frac_train: 0.3
 
-# Probes to run during training
-probes:
-  - performance
-  - l2_norm
-  - sparsity
-  - mechanics
-  - fourier_structure
-
 # No W&B for testing
 wandb_project: modular-test
