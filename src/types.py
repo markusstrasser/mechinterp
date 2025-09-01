@@ -1,31 +1,31 @@
-from typing import TypedDict, List, Optional
+from dataclasses import dataclass, field
+from typing import List, Optional
+import torch
 
+@dataclass
+class TrainConfig:
+    # Core model parameters
+    p: int = 113
+    n_layers: int = 1
+    n_heads: int = 3
+    d_model: int = 32
+    d_ffn: int = 128
 
-class TrainConfig(TypedDict):
-    # Model architecture
-    p: int  # Prime for modular arithmetic
-    n_layers: int
-    n_heads: int
-    d_model: int
-    d_ffn: int
-    
     # Training parameters
-    lr: float
-    weight_decay: float
-    steps: int
-    eval_interval: int
-    seed: int
-    device: str
-    
+    lr: float = 0.001
+    weight_decay: float = 1.0
+    steps: int = 60001
+
     # Dataset parameters
-    n_examples: int
-    frac_train: float
-    
-    # Optional fields
-    probes: List[str]  # List of probe names to run
-    wandb_project: Optional[str]
-    wandb_entity: Optional[str]
-    checkpoint_interval: Optional[int]
+    n_examples: int = 12769
+    frac_train: float = 0.3
 
+    # Execution parameters
+    seed: int = 43
+    device: str = field(default_factory=lambda: 'cuda' if torch.cuda.is_available() else 'cpu')
 
-type ProbeOutput = dict[str, float | str | list[int]]
+    # W&B logging and checkpointing
+    wandb_project: Optional[str] = None
+    wandb_entity: Optional[str] = None
+    eval_interval: int = 1000 # Default value, adjust as needed
+    checkpoint_intervals: List[int] = field(default_factory=lambda: [1000, 5000, 10000, 20000, 40001])
