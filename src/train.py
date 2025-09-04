@@ -1,3 +1,4 @@
+import hashlib
 import tempfile
 import time
 import torch
@@ -10,6 +11,8 @@ from .data import generate_dataset
 from .types import TrainConfig
 from .probes import ProbeContext, trigger_probes
 from tabulate import tabulate
+
+from .utils import checkpoint_name_from_config
 
 
 def flatten_no_parent_keys(d):
@@ -36,12 +39,15 @@ def log_dict(d, with_keys=True, float_fmt=".3f", str_max=10):
         print(keys)
     print(vals)
 
+
+
 def train(config: TrainConfig, model: HookedTransformer, wandb_run=None):
     """
     A simplified training loop that only trains and saves checkpoints.
     """
     train_data, train_labels, test_data, test_labels = generate_dataset(config)
 
+    starttime = time.time()
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=config.lr,
@@ -91,7 +97,7 @@ def train(config: TrainConfig, model: HookedTransformer, wandb_run=None):
             if wandb_run:
                 with tempfile.TemporaryDirectory() as tmpdir:
                     # The local filename is irrelevant, but we can still make it descriptive.
-                    model_filename = f"p{config.p}-d{config.d_model}-s{step}.pt"
+                    model_filename = checkpoint_name_from_config(config, with_extension=True)
                     model_path = os.path.join(tmpdir, model_filename)
                     torch.save(model.state_dict(), model_path)
 
@@ -104,5 +110,5 @@ def train(config: TrainConfig, model: HookedTransformer, wandb_run=None):
                     artifact.add_file(model_path, name="model.pt")
                     wandb_run.log_artifact(artifact, aliases=[f"step_{step}"])
 
-                print(f"--- Saved checkpoint to W&B artifact for step {step} ---")
+                print(f"--- Saved checkpoint to W&B artifact for step {step} --- at time {time.time() - starttime}")
     return model

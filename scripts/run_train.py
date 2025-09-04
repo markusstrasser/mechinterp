@@ -3,6 +3,9 @@ import tomllib  # Replaces yaml
 from pathlib import Path
 import sys
 import wandb
+
+from src.utils import checkpoint_name_from_config
+
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 from src.model import create_model
@@ -32,7 +35,7 @@ def main():
         wandb_run = wandb.init(
             project=config.wandb_project,
             config=vars(config),
-            name=f"p{config.p}_d{config.d_model}_seed{config.seed}"
+            name=checkpoint_name_from_config(config, with_extension=False),
         )
 
     model = create_model(config)
