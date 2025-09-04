@@ -1,13 +1,44 @@
 from torch import nn
 import torch
+import inspect
+import functools
+from collections import defaultdict
+from typing import Callable, Any, TypedDict, Optional
 
-# --- NEW: Simple dictionary-based probe registry ---
-probes = {}
+# 1. The Context "Schema" using TypedDict
+# This is just a type hint; no class is created at runtime.
+class ProbeContext(TypedDict, total=False):
+    model: Any
+    config: Any
+    step: int
+    epoch: int
+    test_data: Optional[Any]
+    test_labels: Optional[Any]
+
+_PROBES = defaultdict(dict)
+
+def probe_on(event: str) -> Callable:
+    def decorator(user_fn: Callable) -> Callable:
+        sig_params = inspect.signature(user_fn).parameters
+
+        @functools.wraps(user_fn)
+        def wrapper(ctx: ProbeContext):
+            call_args = {p: ctx.get(p) for p in sig_params if p in ctx}
+            return user_fn(**call_args)
+
+        _PROBES[event][user_fn.__name__] = wrapper
+        return wrapper
+    return decorator
+
+def probe(user_fn: Callable) -> Callable:
+    return probe_on("manual")(user_fn)
 
 
-def probe(fn):
-    probes[fn.__name__] = fn
-    return fn
+def trigger_probes(event: str, ctx: ProbeContext) -> dict:
+    results = {}
+    for func in _PROBES.get(event, {}).values():
+        results.update(func(ctx))
+    return results
 
 @probe
 def performance(model, test_data, test_labels, **kwargs):
@@ -20,6 +51,16 @@ def performance(model, test_data, test_labels, **kwargs):
 @probe
 def l2_norm(model, **kwargs):
     return {"l2_norm": sum(p.pow(2).sum() for p in model.parameters()).item()}
+
+
+
+def gini(x):
+    x = torch.abs(x.flatten())
+    if torch.sum(x) == 0: return 0.0
+    x = torch.sort(x)[0]
+    n = len(x)
+    cumx = torch.cumsum(x, dim=0)
+    return (n + 1 - 2 * torch.sum(cumx) / cumx[-1]) / n
 
 @probe
 def sparsity(model, config, **kwargs):
@@ -72,12 +113,3 @@ def fourier_structure(model, config, **kwargs):
         'freq_concentration': freq_concentration.item(),
     }
 
-@probe
-def gini(x):
-    # ... (implementation is the same)
-    x = torch.abs(x.flatten())
-    if torch.sum(x) == 0: return 0.0
-    x = torch.sort(x)[0]
-    n = len(x)
-    cumx = torch.cumsum(x, dim=0)
-    return (n + 1 - 2 * torch.sum(cumx) / cumx[-1]) / n
