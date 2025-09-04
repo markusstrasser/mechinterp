@@ -31,7 +31,7 @@ def main():
     model_config_dict = artifact.metadata
     config = TrainConfig(**model_config_dict)
 
-    model_path = Path(artifact_dir) / "checkpoint.pt" # Adjust if filename differs
+    model_path = Path(artifact_dir) / "model.pt"
     state_dict = torch.load(model_path)
 
     model = create_model(config)
