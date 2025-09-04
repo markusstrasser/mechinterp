@@ -9,8 +9,10 @@ __pycache__/
 # C extensions
 *.so
 
-wandb
 
+checkpoints
+
+wandb
 runs/*
 ./runs
 # Distribution / packaging
