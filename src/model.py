@@ -5,9 +5,6 @@ from .types import TrainConfig
 
 def create_model(config: TrainConfig) -> HookedTransformer:
     """
-    Create and initialize a HookedTransformer model for modular arithmetic.
-    
-    Theory: Model Configuration
     - Small Model: The model is intentionally small (1 layer, small d_model). This makes it
       harder to simply memorize the entire p*p table via brute force, encouraging it to find
       the underlying algorithmic structure.
