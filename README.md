@@ -1,5 +1,6 @@
 # TODO
 
+* DO DYNAMIC CHECKPOINTING?
 * What should be filmed? At what point? 
 * 3 Models: "no", "almost" "yes" , ... maybe "yes, easily"
 
