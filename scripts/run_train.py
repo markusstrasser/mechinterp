@@ -3,18 +3,15 @@ import tomllib  # Replaces yaml
 from pathlib import Path
 import sys
 import wandb
-
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-
 from src.model import create_model
-from src.runner import train
+from src.train import train
 from src.types import TrainConfig
 
 def load_config(path: str) -> TrainConfig:
     """Loads a flat TOML file directly into the TrainConfig dataclass."""
     with open(path, "rb") as f:
-        # The entire logic is now just these two lines.
         config_dict = tomllib.load(f)
         return TrainConfig(**config_dict)
 
