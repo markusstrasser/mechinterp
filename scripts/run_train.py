@@ -31,7 +31,6 @@ def main():
     if config.wandb_project:
         wandb_run = wandb.init(
             project=config.wandb_project,
-            # entity=config.wandb_entity, # Assumes wandb_entity is in your TrainConfig
             config=vars(config),
             name=f"p{config.p}_d{config.d_model}_seed{config.seed}"
         )
