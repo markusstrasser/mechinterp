@@ -4,10 +4,11 @@ from pathlib import Path
 import sys
 import wandb
 
-from src.utils import checkpoint_name_from_config
-
+# Add project root to path FIRST
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
+
+from src.utils import checkpoint_name_from_config
 from src.model import create_model
 from src.train import train
 from src.types import TrainConfig
