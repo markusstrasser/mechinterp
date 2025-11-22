@@ -1,0 +1,310 @@
+================================================================================
+DEEP ACTIVATION AND WEIGHT INSPECTION
+================================================================================
+
+Generating test samples...
+
+
+################################################################################
+# EARLY
+################################################################################
+
+Loading model from checkpoints/e332cujg/early/model.pt...
+
+================================================================================
+WEIGHT ANALYSIS: early
+================================================================================
+
+Token Embeddings (W_E): (114, 32)
+  L2 norms per token: min=0.542, max=0.971, mean=0.792
+
+Head 0:
+  QK circuit: rank=10, ||QK||_F=3.029
+  OV circuit: rank=10, ||OV||_F=3.157
+
+Head 1:
+  QK circuit: rank=10, ||QK||_F=2.748
+  OV circuit: rank=10, ||OV||_F=2.912
+
+Head 2:
+  QK circuit: rank=10, ||QK||_F=4.009
+  OV circuit: rank=10, ||OV||_F=3.002
+
+MLP:
+  W_in: (32, 128), ||W||_F=7.916
+  W_out: (128, 32), ||W||_F=8.054
+  Effective rank (W_in): 32
+  Effective rank (W_out): 32
+  Top 5 singular values (W_in): [2.4303613 2.415258  2.345528  2.1990633 1.8656075]
+  Top 5 singular values (W_out): [2.5707476 2.4666147 2.3244085 2.2602859 1.9516437]
+  Spectral norm ratio (s1/s2): W_in=1.006, W_out=1.042
+
+Extracting activations...
+
+================================================================================
+ACTIVATION ANALYSIS: early
+================================================================================
+
+Final Layer Representations (before unembed):
+  Shape: (200, 32)
+  Mean norm: 8.606
+  Std norm: 1.740
+
+Neural Collapse Metrics:
+  Within-class variance (mean): 13.338903
+  Within-class variance (std): 7.928370
+
+Attention Patterns:
+  Shape: (200, 3, 3, 3)
+  Head 0: pos2→pos0=0.414, pos2→pos1=0.557, pos2→pos2=0.029
+  Head 1: pos2→pos0=0.484, pos2→pos1=0.473, pos2→pos2=0.043
+  Head 2: pos2→pos0=0.611, pos2→pos1=0.375, pos2→pos2=0.015
+
+MLP Output:
+  Mean magnitude: 0.737
+  Max magnitude: 4.261
+  Fraction > 0.1: 0.904
+
+
+################################################################################
+# JUST_BEFORE_GROK
+################################################################################
+
+Loading model from checkpoints/e332cujg/just_before_grok/model.pt...
+
+================================================================================
+WEIGHT ANALYSIS: just_before_grok
+================================================================================
+
+Token Embeddings (W_E): (114, 32)
+  L2 norms per token: min=1.036, max=1.647, mean=1.353
+
+Head 0:
+  QK circuit: rank=1, ||QK||_F=2.865
+  OV circuit: rank=10, ||OV||_F=10.378
+
+Head 1:
+  QK circuit: rank=1, ||QK||_F=2.785
+  OV circuit: rank=10, ||OV||_F=10.211
+
+Head 2:
+  QK circuit: rank=1, ||QK||_F=2.270
+  OV circuit: rank=10, ||OV||_F=10.470
+
+MLP:
+  W_in: (32, 128), ||W||_F=15.697
+  W_out: (128, 32), ||W||_F=18.345
+  Effective rank (W_in): 32
+  Effective rank (W_out): 32
+  Top 5 singular values (W_in): [4.511106  4.4150276 4.1892805 3.9539797 3.878002 ]
+  Top 5 singular values (W_out): [5.52423   5.2280755 4.510571  4.451744  4.1204453]
+  Spectral norm ratio (s1/s2): W_in=1.022, W_out=1.057
+
+Extracting activations...
+
+================================================================================
+ACTIVATION ANALYSIS: just_before_grok
+================================================================================
+
+Final Layer Representations (before unembed):
+  Shape: (200, 32)
+  Mean norm: 13.995
+  Std norm: 2.998
+
+Neural Collapse Metrics:
+  Within-class variance (mean): 78.691695
+  Within-class variance (std): 41.576442
+
+Attention Patterns:
+  Shape: (200, 3, 3, 3)
+  Head 0: pos2→pos0=0.297, pos2→pos1=0.703, pos2→pos2=0.000
+  Head 1: pos2→pos0=0.451, pos2→pos1=0.549, pos2→pos2=0.000
+  Head 2: pos2→pos0=0.752, pos2→pos1=0.248, pos2→pos2=0.000
+
+MLP Output:
+  Mean magnitude: 2.288
+  Max magnitude: 14.105
+  Fraction > 0.1: 0.971
+
+
+################################################################################
+# GROKKING_MOMENT
+################################################################################
+
+Loading model from checkpoints/e332cujg/grokking_moment/model.pt...
+
+================================================================================
+WEIGHT ANALYSIS: grokking_moment
+================================================================================
+
+Token Embeddings (W_E): (114, 32)
+  L2 norms per token: min=1.045, max=1.317, mean=1.152
+
+Head 0:
+  QK circuit: rank=1, ||QK||_F=2.610
+  OV circuit: rank=10, ||OV||_F=9.907
+
+Head 1:
+  QK circuit: rank=1, ||QK||_F=1.968
+  OV circuit: rank=10, ||OV||_F=5.154
+
+Head 2:
+  QK circuit: rank=1, ||QK||_F=2.703
+  OV circuit: rank=10, ||OV||_F=9.673
+
+MLP:
+  W_in: (32, 128), ||W||_F=13.289
+  W_out: (128, 32), ||W||_F=13.575
+  Effective rank (W_in): 32
+  Effective rank (W_out): 32
+  Top 5 singular values (W_in): [5.234894  5.0871    4.4892716 4.250554  4.2049937]
+  Top 5 singular values (W_out): [6.667266  6.128123  5.895341  4.9280186 4.6942835]
+  Spectral norm ratio (s1/s2): W_in=1.029, W_out=1.088
+
+Extracting activations...
+
+================================================================================
+ACTIVATION ANALYSIS: grokking_moment
+================================================================================
+
+Final Layer Representations (before unembed):
+  Shape: (200, 32)
+  Mean norm: 89.764
+  Std norm: 12.146
+
+Neural Collapse Metrics:
+  Within-class variance (mean): 127.257046
+  Within-class variance (std): 98.974485
+
+Attention Patterns:
+  Shape: (200, 3, 3, 3)
+  Head 0: pos2→pos0=0.466, pos2→pos1=0.532, pos2→pos2=0.002
+  Head 1: pos2→pos0=0.477, pos2→pos1=0.514, pos2→pos2=0.010
+  Head 2: pos2→pos0=0.535, pos2→pos1=0.462, pos2→pos2=0.003
+
+MLP Output:
+  Mean magnitude: 10.823
+  Max magnitude: 40.604
+  Fraction > 0.1: 0.993
+
+
+################################################################################
+# FINAL
+################################################################################
+
+Loading model from checkpoints/e332cujg/final/model.pt...
+
+================================================================================
+WEIGHT ANALYSIS: final
+================================================================================
+
+Token Embeddings (W_E): (114, 32)
+  L2 norms per token: min=1.207, max=1.587, mean=1.394
+
+Head 0:
+  QK circuit: rank=1, ||QK||_F=1.767
+  OV circuit: rank=7, ||OV||_F=14.559
+
+Head 1:
+  QK circuit: rank=1, ||QK||_F=1.501
+  OV circuit: rank=9, ||OV||_F=12.193
+
+Head 2:
+  QK circuit: rank=1, ||QK||_F=1.596
+  OV circuit: rank=8, ||OV||_F=14.661
+
+MLP:
+  W_in: (32, 128), ||W||_F=15.765
+  W_out: (128, 32), ||W||_F=13.971
+  Effective rank (W_in): 32
+  Effective rank (W_out): 32
+  Top 5 singular values (W_in): [6.8495736 6.5376363 5.6276073 5.072983  4.639221 ]
+  Top 5 singular values (W_out): [8.525155  6.084907  5.2783155 4.791021  4.5163884]
+  Spectral norm ratio (s1/s2): W_in=1.048, W_out=1.401
+
+Extracting activations...
+
+================================================================================
+ACTIVATION ANALYSIS: final
+================================================================================
+
+Final Layer Representations (before unembed):
+  Shape: (200, 32)
+  Mean norm: 172.810
+  Std norm: 29.092
+
+Neural Collapse Metrics:
+  Within-class variance (mean): 874.739504
+  Within-class variance (std): 576.464734
+
+Attention Patterns:
+  Shape: (200, 3, 3, 3)
+  Head 0: pos2→pos0=0.469, pos2→pos1=0.529, pos2→pos2=0.002
+  Head 1: pos2→pos0=0.484, pos2→pos1=0.512, pos2→pos2=0.004
+  Head 2: pos2→pos0=0.535, pos2→pos1=0.462, pos2→pos2=0.002
+
+MLP Output:
+  Mean magnitude: 21.470
+  Max magnitude: 120.889
+  Fraction > 0.1: 0.996
+
+
+################################################################################
+# ALMOST_FINAL
+################################################################################
+
+Loading model from checkpoints/5bon0t2j/final/model.pt...
+
+================================================================================
+WEIGHT ANALYSIS: almost_final
+================================================================================
+
+Token Embeddings (W_E): (114, 32)
+  L2 norms per token: min=1.059, max=1.929, mean=1.517
+
+Head 0:
+  QK circuit: rank=1, ||QK||_F=2.678
+  OV circuit: rank=10, ||OV||_F=18.810
+
+Head 1:
+  QK circuit: rank=1, ||QK||_F=6.073
+  OV circuit: rank=10, ||OV||_F=19.609
+
+Head 2:
+  QK circuit: rank=1, ||QK||_F=4.007
+  OV circuit: rank=10, ||OV||_F=18.231
+
+MLP:
+  W_in: (32, 128), ||W||_F=15.913
+  W_out: (128, 32), ||W||_F=14.055
+  Effective rank (W_in): 32
+  Effective rank (W_out): 32
+  Top 5 singular values (W_in): [4.8056126 4.6386747 4.5396447 4.3660398 3.8720317]
+  Top 5 singular values (W_out): [4.0356984 3.7956915 3.6430855 3.5761616 3.381305 ]
+  Spectral norm ratio (s1/s2): W_in=1.036, W_out=1.063
+
+Extracting activations...
+
+================================================================================
+ACTIVATION ANALYSIS: almost_final
+================================================================================
+
+Final Layer Representations (before unembed):
+  Shape: (200, 32)
+  Mean norm: 15.522
+  Std norm: 4.310
+
+Neural Collapse Metrics:
+  Within-class variance (mean): 114.885001
+  Within-class variance (std): 77.290213
+
+Attention Patterns:
+  Shape: (200, 3, 3, 3)
+  Head 0: pos2→pos0=0.278, pos2→pos1=0.722, pos2→pos2=0.000
+  Head 1: pos2→pos0=0.524, pos2→pos1=0.476, pos2→pos2=0.000
+  Head 2: pos2→pos0=0.811, pos2→pos1=0.189, pos2→pos2=0.000
+
+MLP Output:
+  Mean magnitude: 2.728
+  Max magnitude: 15.065
+  Fraction > 0.1: 0.975

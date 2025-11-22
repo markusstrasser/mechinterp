@@ -1,0 +1,377 @@
+================================================================================
+NANDA-STYLE DEEP ANALYSIS
+Following 'Progress Measures for Grokking' (Nanda et al., ICLR 2023)
+================================================================================
+
+
+################################################################################
+# EARLY
+################################################################################
+
+================================================================================
+FOURIER ANALYSIS: early
+================================================================================
+
+Top 10 Fourier frequencies (k):
+  k= 65: power=0.011961
+  k= 48: power=0.011961
+  k=112: power=0.011645
+  k=  1: power=0.011645
+  k= 33: power=0.010966
+  k= 80: power=0.010966
+  k=  9: power=0.010734
+  k=104: power=0.010734
+  k=110: power=0.010601
+  k=  3: power=0.010601
+
+Nanda's key frequencies for p=113: [14, 35, 41, 42, 52]
+Power at Nanda's frequencies:
+  k= 14: power=0.008823
+  k= 35: power=0.008142
+  k= 41: power=0.008605
+  k= 42: power=0.009549
+  k= 52: power=0.009698
+
+Gini coefficient of Fourier components: 0.071145
+  (Higher = more sparse, concentrated in few frequencies)
+Power in top 5 frequencies: 0.058178
+
+================================================================================
+NEURON SPECIALIZATION: early
+================================================================================
+
+Neuron frequency specialization:
+  Unique frequencies used by neurons: 40
+
+Top 10 frequencies by neuron count:
+  k= 48:  10 neurons (7.8%)
+  k=  3:  10 neurons (7.8%)
+  k= 42:   7 neurons (5.5%)
+  k= 12:   7 neurons (5.5%)
+  k= 54:   7 neurons (5.5%)
+  k= 50:   6 neurons (4.7%)
+  k= 33:   5 neurons (3.9%)
+  k= 20:   5 neurons (3.9%)
+  k= 10:   5 neurons (3.9%)
+  k= 28:   5 neurons (3.9%)
+
+Neurons tuned to Nanda's frequencies:
+  k= 14:   3 neurons (2.3%)
+  k= 35:   0 neurons (0.0%)
+  k= 41:   2 neurons (1.6%)
+  k= 42:   7 neurons (5.5%)
+  k= 52:   0 neurons (0.0%)
+
+================================================================================
+EXCLUDED LOSS ANALYSIS: early
+================================================================================
+
+Normal performance:
+  Accuracy: 0.011042
+  Loss: 4.907515
+
+Excluded performance (key frequencies removed):
+  Accuracy: 0.012139 (drop: -0.001096)
+  Loss: 4.890965 (increase: -0.016550)
+
+Interpretation:
+  WEAK reliance on Fourier algorithm (likely memorization)
+
+
+################################################################################
+# JUST_BEFORE_GROK
+################################################################################
+
+================================================================================
+FOURIER ANALYSIS: just_before_grok
+================================================================================
+
+Top 10 Fourier frequencies (k):
+  k= 53: power=0.028696
+  k= 60: power=0.028696
+  k= 48: power=0.013760
+  k= 65: power=0.013760
+  k= 32: power=0.011840
+  k= 81: power=0.011840
+  k=  7: power=0.011816
+  k=106: power=0.011816
+  k= 97: power=0.011254
+  k= 16: power=0.011254
+
+Nanda's key frequencies for p=113: [14, 35, 41, 42, 52]
+Power at Nanda's frequencies:
+  k= 14: power=0.008067
+  k= 35: power=0.007386
+  k= 41: power=0.008478
+  k= 42: power=0.008158
+  k= 52: power=0.007721
+
+Gini coefficient of Fourier components: 0.136602
+  (Higher = more sparse, concentrated in few frequencies)
+Power in top 5 frequencies: 0.096751
+
+================================================================================
+NEURON SPECIALIZATION: just_before_grok
+================================================================================
+
+Neuron frequency specialization:
+  Unique frequencies used by neurons: 28
+
+Top 10 frequencies by neuron count:
+  k= 53:  71 neurons (55.5%)
+  k= 32:   8 neurons (6.2%)
+  k= 48:   6 neurons (4.7%)
+  k=  1:   5 neurons (3.9%)
+  k= 56:   4 neurons (3.1%)
+  k= 33:   3 neurons (2.3%)
+  k= 20:   3 neurons (2.3%)
+  k= 21:   2 neurons (1.6%)
+  k= 27:   2 neurons (1.6%)
+  k= 11:   2 neurons (1.6%)
+
+Neurons tuned to Nanda's frequencies:
+  k= 14:   0 neurons (0.0%)
+  k= 35:   0 neurons (0.0%)
+  k= 41:   0 neurons (0.0%)
+  k= 42:   1 neurons (0.8%)
+  k= 52:   1 neurons (0.8%)
+
+================================================================================
+EXCLUDED LOSS ANALYSIS: just_before_grok
+================================================================================
+
+Normal performance:
+  Accuracy: 0.266975
+  Loss: 5.441165
+
+Excluded performance (key frequencies removed):
+  Accuracy: 0.207534 (drop: 0.059441)
+  Loss: 5.399955 (increase: -0.041210)
+
+Interpretation:
+  WEAK reliance on Fourier algorithm (likely memorization)
+
+
+################################################################################
+# GROKKING_MOMENT
+################################################################################
+
+================================================================================
+FOURIER ANALYSIS: grokking_moment
+================================================================================
+
+Top 10 Fourier frequencies (k):
+  k= 53: power=0.112562
+  k= 60: power=0.112562
+  k= 65: power=0.068374
+  k= 48: power=0.068374
+  k=112: power=0.026064
+  k=  1: power=0.026064
+  k= 46: power=0.011902
+  k= 67: power=0.011902
+  k= 72: power=0.011226
+  k= 41: power=0.011226
+
+Nanda's key frequencies for p=113: [14, 35, 41, 42, 52]
+Power at Nanda's frequencies:
+  k= 14: power=0.004894
+  k= 35: power=0.004596
+  k= 41: power=0.011226
+  k= 42: power=0.003291
+  k= 52: power=0.006376
+
+Gini coefficient of Fourier components: 0.475177
+  (Higher = more sparse, concentrated in few frequencies)
+Power in top 5 frequencies: 0.387935
+
+================================================================================
+NEURON SPECIALIZATION: grokking_moment
+================================================================================
+
+Neuron frequency specialization:
+  Unique frequencies used by neurons: 2
+
+Top 10 frequencies by neuron count:
+  k= 53:  88 neurons (68.8%)
+  k= 48:  40 neurons (31.2%)
+
+Neurons tuned to Nanda's frequencies:
+  k= 14:   0 neurons (0.0%)
+  k= 35:   0 neurons (0.0%)
+  k= 41:   0 neurons (0.0%)
+  k= 42:   0 neurons (0.0%)
+  k= 52:   0 neurons (0.0%)
+
+================================================================================
+EXCLUDED LOSS ANALYSIS: grokking_moment
+================================================================================
+
+Normal performance:
+  Accuracy: 0.977759
+  Loss: 0.126344
+
+Excluded performance (key frequencies removed):
+  Accuracy: 0.389694 (drop: 0.588065)
+  Loss: 3.855776 (increase: 3.729433)
+
+Interpretation:
+  STRONG reliance on Fourier algorithm (large accuracy drop)
+
+
+################################################################################
+# FINAL
+################################################################################
+
+================================================================================
+FOURIER ANALYSIS: final
+================================================================================
+
+Top 10 Fourier frequencies (k):
+  k= 53: power=0.119794
+  k= 60: power=0.119794
+  k= 65: power=0.061969
+  k= 48: power=0.061969
+  k=112: power=0.024477
+  k=  1: power=0.024477
+  k= 46: power=0.015112
+  k= 67: power=0.015112
+  k= 17: power=0.011614
+  k= 96: power=0.011614
+
+Nanda's key frequencies for p=113: [14, 35, 41, 42, 52]
+Power at Nanda's frequencies:
+  k= 14: power=0.006239
+  k= 35: power=0.003665
+  k= 41: power=0.011350
+  k= 42: power=0.003462
+  k= 52: power=0.007371
+
+Gini coefficient of Fourier components: 0.497877
+  (Higher = more sparse, concentrated in few frequencies)
+Power in top 5 frequencies: 0.388003
+
+================================================================================
+NEURON SPECIALIZATION: final
+================================================================================
+
+Neuron frequency specialization:
+  Unique frequencies used by neurons: 3
+
+Top 10 frequencies by neuron count:
+  k= 53:  89 neurons (69.5%)
+  k= 48:  38 neurons (29.7%)
+  k=  1:   1 neurons (0.8%)
+
+Neurons tuned to Nanda's frequencies:
+  k= 14:   0 neurons (0.0%)
+  k= 35:   0 neurons (0.0%)
+  k= 41:   0 neurons (0.0%)
+  k= 42:   0 neurons (0.0%)
+  k= 52:   0 neurons (0.0%)
+
+================================================================================
+EXCLUDED LOSS ANALYSIS: final
+================================================================================
+
+Normal performance:
+  Accuracy: 0.981518
+  Loss: 0.077695
+
+Excluded performance (key frequencies removed):
+  Accuracy: 0.308325 (drop: 0.673193)
+  Loss: 8.258885 (increase: 8.181190)
+
+Interpretation:
+  STRONG reliance on Fourier algorithm (large accuracy drop)
+
+
+################################################################################
+# ALMOST_FINAL
+################################################################################
+
+================================================================================
+FOURIER ANALYSIS: almost_final
+================================================================================
+
+Top 10 Fourier frequencies (k):
+  k= 65: power=0.013783
+  k= 48: power=0.013783
+  k= 52: power=0.012341
+  k= 61: power=0.012341
+  k= 97: power=0.011317
+  k= 16: power=0.011317
+  k=  6: power=0.011204
+  k=107: power=0.011204
+  k= 43: power=0.011098
+  k= 70: power=0.011098
+
+Nanda's key frequencies for p=113: [14, 35, 41, 42, 52]
+Power at Nanda's frequencies:
+  k= 14: power=0.010372
+  k= 35: power=0.007816
+  k= 41: power=0.009240
+  k= 42: power=0.010676
+  k= 52: power=0.012341
+
+Gini coefficient of Fourier components: 0.091376
+  (Higher = more sparse, concentrated in few frequencies)
+Power in top 5 frequencies: 0.063564
+
+================================================================================
+NEURON SPECIALIZATION: almost_final
+================================================================================
+
+Neuron frequency specialization:
+  Unique frequencies used by neurons: 34
+
+Top 10 frequencies by neuron count:
+  k= 48:  15 neurons (11.7%)
+  k= 16:  11 neurons (8.6%)
+  k=  6:   9 neurons (7.0%)
+  k= 21:   8 neurons (6.2%)
+  k= 52:   8 neurons (6.2%)
+  k= 43:   7 neurons (5.5%)
+  k= 11:   7 neurons (5.5%)
+  k= 38:   6 neurons (4.7%)
+  k= 53:   5 neurons (3.9%)
+  k= 32:   5 neurons (3.9%)
+
+Neurons tuned to Nanda's frequencies:
+  k= 14:   3 neurons (2.3%)
+  k= 35:   1 neurons (0.8%)
+  k= 41:   4 neurons (3.1%)
+  k= 42:   3 neurons (2.3%)
+  k= 52:   8 neurons (6.2%)
+
+================================================================================
+EXCLUDED LOSS ANALYSIS: almost_final
+================================================================================
+
+Normal performance:
+  Accuracy: 0.254758
+  Loss: 10.478436
+
+Excluded performance (key frequencies removed):
+  Accuracy: 0.149816 (drop: 0.104942)
+  Loss: 10.592418 (increase: 0.113982)
+
+Interpretation:
+  MODERATE reliance on Fourier algorithm
+
+
+================================================================================
+SUMMARY COMPARISON
+================================================================================
+
+Checkpoint               Gini   Top5 Pwr   Acc Drop  Normal Acc
+----------------------------------------------------------------------
+early                  0.0711     0.0582    -0.0011      0.0110
+just_before_grok       0.1366     0.0968     0.0594      0.2670
+grokking_moment        0.4752     0.3879     0.5881      0.9778
+final                  0.4979     0.3880     0.6732      0.9815
+almost_final           0.0914     0.0636     0.1049      0.2548
+
+Key insights:
+- Gini ↑ means more sparse (concentrated) Fourier spectrum
+- Top5 Pwr ↑ means more power in top 5 frequencies
+- Acc Drop ↑ means stronger reliance on Fourier algorithm
