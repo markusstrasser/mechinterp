@@ -1,0 +1,45 @@
+# Dense checkpointing config to capture the exact grokking moment
+# Based on run e332cujg which grokked between step 31600-32300
+
+p = 113
+d_model = 32
+n_layers = 1
+n_heads = 3
+d_ffn = 128
+frac_train = 0.3
+
+# Training
+lr = 0.001
+weight_decay = 3.0  # This value worked reliably
+steps = 40001  # Don't need full 60k - grokking happens around 32k
+eval_interval = 100
+
+# Use the same seed that worked
+seed = 43
+
+# Device (M1 Pro - use MPS for faster training)
+device = "mps"  # Apple Silicon GPU
+
+# W&B
+wandb_project = "mod-arith-grokking"
+# wandb_entity is optional, omit to use default
+
+# DENSE CHECKPOINTING around the grokking moment
+# Based on e332cujg, grokking happens at step 31600-32300
+checkpoint_intervals = [
+    # Early (sparse)
+    100, 500, 1000, 2000, 5000, 10000, 15000, 20000, 25000,
+
+    # Pre-grokking ramp-up (every 500 steps)
+    28000, 28500, 29000, 29500,
+
+    # THE CRITICAL ZONE (every 100 steps!)
+    30000, 30100, 30200, 30300, 30400, 30500, 30600, 30700, 30800, 30900,
+    31000, 31100, 31200, 31300, 31400, 31500, 31600, 31700, 31800, 31900,
+    32000, 32100, 32200, 32300, 32400, 32500, 32600, 32700, 32800, 32900,
+    33000, 33100, 33200, 33300, 33400, 33500, 33600, 33700, 33800, 33900,
+    34000, 34500, 35000, 35500,
+
+    # Post-grokking (sparse)
+    36000, 37000, 38000, 39000, 40000
+]

@@ -1,0 +1,50 @@
+# Fresh grokking run targeting 100% accuracy with dense checkpoints
+# Based on successful WD=3.0 runs (um7dxpfz hit 100% at 19.2k, 6rihjewj at 56k)
+
+# Model architecture
+p = 113
+d_model = 32
+n_heads = 3
+n_layers = 1
+d_ffn = 128
+frac_train = 0.3
+
+# Training hyperparameters
+lr = 0.001
+weight_decay = 3.0  # Known to grok reliably
+steps = 100000  # Run longer to ensure solid 100%
+eval_interval = 100
+seed = 43  # Same seed for reproducibility
+
+# Device
+device = "mps"  # Use Apple Silicon GPU
+
+# Logging
+wandb_project = "mod-arith-grokking"
+wandb_entity = "discoelysium-neuromatch"
+
+# Dense checkpoint strategy:
+# - Early: frequent for monitoring (every 500 steps to 10k)
+# - Mid: moderate (10k-38k every 2k)
+# - Grokking zone: DENSE (38k-60k every 500 steps)
+# - Late: sparse (60k-100k every 5k)
+checkpoint_intervals = [
+    # Early training (frequent for progress checks)
+    100, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000,
+    5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500,
+
+    # Pre-grokking plateau (moderate density)
+    10000, 12000, 14000, 16000, 18000, 20000,
+    22000, 24000, 26000, 28000, 30000,
+    32000, 34000, 36000, 38000,
+
+    # CRITICAL GROKKING ZONE (very dense - every 500 steps)
+    38500, 39000, 39500, 40000, 40500, 41000, 41500, 42000, 42500, 43000,
+    43500, 44000, 44500, 45000, 45500, 46000, 46500, 47000, 47500, 48000,
+    48500, 49000, 49500, 50000, 50500, 51000, 51500, 52000, 52500, 53000,
+    53500, 54000, 54500, 55000, 55500, 56000, 56500, 57000, 57500, 58000,
+    58500, 59000, 59500, 60000,
+
+    # Late training (sparse - every 5k)
+    65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000
+]

@@ -1,0 +1,30 @@
+# Quick run to test if a seed groks around step 30k-35k
+# We'll run this with multiple seeds to find one that works
+
+p = 113
+d_model = 32
+n_layers = 1
+n_heads = 3
+d_ffn = 128
+frac_train = 0.3
+
+# Training
+lr = 0.001
+weight_decay = 3.0
+steps = 40001
+eval_interval = 100
+
+# Will set seed via command line argument
+seed = 43
+
+# Device
+device = "mps"
+
+# W&B
+wandb_project = "mod-arith-grokking"
+
+# Sparse checkpoints just to track progress
+checkpoint_intervals = [
+    100, 500, 1000, 2000, 5000, 10000, 15000, 20000, 25000,
+    30000, 35000, 40000
+]

@@ -1,0 +1,52 @@
+# Training for perfect 100% grokking with dense checkpoints
+# Using seed 42 (different from unreliable seed 43)
+
+# Model
+p = 113
+d_model = 32
+n_heads = 3
+n_layers = 1
+d_ffn = 128
+frac_train = 0.3
+
+# Training
+lr = 0.001
+weight_decay = 3.0  # Known to induce grokking
+steps = 60000  # Enough to reach 100%
+eval_interval = 100
+seed = 42  # DIFFERENT SEED from previous runs
+
+# Device
+device = "cpu"  # CRITICAL: Use CPU to match successful um7dxpfz run (MPS causes different numerical behavior)
+
+# Logging
+wandb_project = "mod-arith-grokking"
+wandb_entity = "discoelysium-neuromatch"
+
+# Dense checkpointing strategy:
+# - Early: every 1k for monitoring
+# - ZONE 1 (15k-25k): every 500 steps - um7dxpfz grokked at 19.2k
+# - Mid: every 2k
+# - ZONE 2 (38k-48k): every 500 steps - e332cujg grokked at 42-44k
+# - Late: every 5k
+checkpoint_intervals = [
+    # Early (every 1k)
+    1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
+    11000, 12000, 13000, 14000,
+
+    # GROKKING ZONE 1 (every 500 steps) - covers um7dxpfz @ 19.2k
+    15000, 15500, 16000, 16500, 17000, 17500, 18000, 18500, 19000, 19500,
+    20000, 20500, 21000, 21500, 22000, 22500, 23000, 23500, 24000, 24500,
+    25000,
+
+    # Mid-training (every 2k)
+    27000, 29000, 31000, 33000, 35000, 37000,
+
+    # GROKKING ZONE 2 (every 500 steps) - covers e332cujg @ 42-44k
+    38000, 38500, 39000, 39500, 40000, 40500, 41000, 41500, 42000, 42500,
+    43000, 43500, 44000, 44500, 45000, 45500, 46000, 46500, 47000, 47500,
+    48000,
+
+    # Post-grokking (every 5k)
+    50000, 55000, 60000
+]
