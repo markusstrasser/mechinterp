@@ -39,7 +39,7 @@ def _(Path, json, mo, pd):
         
     df["Phase"] = df["step"].apply(get_phase)
 
-    mo.md(f"""
+    mo.md(r"""
     # 🕵️‍♀️ The Grokking Detective Story
 
     **The Case:** A neural network is learning to add numbers ($a+b \pmod{{113}}$).
