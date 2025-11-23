@@ -135,15 +135,15 @@ def _(TrainConfig, ckpt_path, create_model, project_root, run_id, torch):
 @app.cell
 def _(chosen_ckpt, config, fft, mo, model, np, plt):
     # Fourier analysis of embeddings
-    p = config.p
-    W_E = model.W_E.detach().cpu().numpy()[:p, :]
+    _p = config.p
+    _W_E = model.W_E.detach().cpu().numpy()[:_p, :]
 
-    fft_components = np.abs(fft(W_E, axis=0))
-    total_power = fft_components.sum(axis=1)
-    total_power = total_power / total_power.sum()
+    _fft_components = np.abs(fft(_W_E, axis=0))
+    _total_power = _fft_components.sum(axis=1)
+    _total_power = _total_power / _total_power.sum()
 
     # Gini coefficient
-    def gini(x):
+    def _gini(x):
         x = np.abs(x.flatten())
         if x.sum() == 0:
             return 0.0
@@ -152,25 +152,25 @@ def _(chosen_ckpt, config, fft, mo, model, np, plt):
         cumx = np.cumsum(sorted_x)
         return (n + 1 - 2 * (cumx / cumx[-1]).sum()) / n
 
-    gini_power = gini(total_power)
+    _gini_power = _gini(_total_power)
 
     # Top frequencies
-    topk_idx = np.argsort(total_power)[-10:][::-1]
-    topk_power = total_power[topk_idx]
-    top5_frac = float(topk_power[:5].sum())
+    _topk_idx = np.argsort(_total_power)[-10:][::-1]
+    _topk_power = _total_power[_topk_idx]
+    _top5_frac = float(_topk_power[:5].sum())
 
-    k53_power = float(total_power[53]) if 53 < len(total_power) else 0.0
-    k60_power = float(total_power[60]) if 60 < len(total_power) else 0.0
+    _k53_power = float(_total_power[53]) if 53 < len(_total_power) else 0.0
+    _k60_power = float(_total_power[60]) if 60 < len(_total_power) else 0.0
 
     # Plot
-    fig1, ax1 = plt.subplots(figsize=(6, 3))
-    ax1.bar(np.arange(len(total_power)), total_power, width=1.0)
-    ax1.set_xlabel("Frequency k")
-    ax1.set_ylabel("Normalized power")
-    ax1.set_title("Embedding Fourier spectrum")
-    ax1.axvline(53, color="red", linestyle="--", alpha=0.7, label="k=53")
-    ax1.axvline(60, color="orange", linestyle="--", alpha=0.7, label="k=60")
-    ax1.legend()
+    _fig1, _ax1 = plt.subplots(figsize=(6, 3))
+    _ax1.bar(np.arange(len(_total_power)), _total_power, width=1.0)
+    _ax1.set_xlabel("Frequency k")
+    _ax1.set_ylabel("Normalized power")
+    _ax1.set_title("Embedding Fourier spectrum")
+    _ax1.axvline(53, color="red", linestyle="--", alpha=0.7, label="k=53")
+    _ax1.axvline(60, color="orange", linestyle="--", alpha=0.7, label="k=60")
+    _ax1.legend()
     plt.close()
 
     mo.vstack([
@@ -179,12 +179,12 @@ def _(chosen_ckpt, config, fft, mo, model, np, plt):
 
         **Checkpoint:** `{chosen_ckpt['label']}` (step {chosen_ckpt.get('step', 'NA')})
 
-        - Gini (sparsity): `{gini_power:.3f}`
-        - Top 5 fraction: `{top5_frac:.3f}`
-        - k=53 power: `{k53_power:.4f}`
-        - k=60 power: `{k60_power:.4f}`
+        - Gini (sparsity): `{_gini_power:.3f}`
+        - Top 5 fraction: `{_top5_frac:.3f}`
+        - k=53 power: `{_k53_power:.4f}`
+        - k=60 power: `{_k60_power:.4f}`
         """),
-        mo.as_html(fig1)
+        mo.as_html(_fig1)
     ])
     return
 
@@ -192,42 +192,42 @@ def _(chosen_ckpt, config, fft, mo, model, np, plt):
 @app.cell
 def _(chosen_ckpt, config, fft, mo, model, np):
     # Neuron frequency specialization
-    p2 = config.p
-    W_in = model.blocks[0].mlp.W_in.detach().cpu().numpy()
-    W_E2 = model.W_E.detach().cpu().numpy()[:p2, :]
+    _p2 = config.p
+    _W_in = model.blocks[0].mlp.W_in.detach().cpu().numpy()
+    _W_E2 = model.W_E.detach().cpu().numpy()[:_p2, :]
 
-    d_mlp = W_in.shape[1]
-    neuron_dom_freq = np.zeros(d_mlp, dtype=int)
+    _d_mlp = _W_in.shape[1]
+    _neuron_dom_freq = np.zeros(_d_mlp, dtype=int)
 
-    for i in range(d_mlp):
-        w_in_neuron = W_in[:, i]
-        projected = W_E2 @ w_in_neuron
-        fft_neuron = np.abs(fft(projected))
-        k = int(np.argmax(fft_neuron[1:]) + 1)
-        neuron_dom_freq[i] = k
+    for i in range(_d_mlp):
+        _w_in_neuron = _W_in[:, i]
+        _projected = _W_E2 @ _w_in_neuron
+        _fft_neuron = np.abs(fft(_projected))
+        _k = int(np.argmax(_fft_neuron[1:]) + 1)
+        _neuron_dom_freq[i] = _k
 
-    unique, counts = np.unique(neuron_dom_freq, return_counts=True)
-    order = np.argsort(counts)[::-1]
-    unique = unique[order]
-    counts = counts[order]
+    _unique, _counts = np.unique(_neuron_dom_freq, return_counts=True)
+    _order = np.argsort(_counts)[::-1]
+    _unique = _unique[_order]
+    _counts = _counts[_order]
 
     # Build table
-    rows = ["| k | #neurons | frac |", "|---|----------|------|"]
-    total = counts.sum()
-    for k, c in zip(unique[:10], counts[:10]):
-        rows.append(f"| {int(k)} | {int(c)} | {c/total:.3f} |")
+    _rows = ["| k | #neurons | frac |", "|---|----------|------|"]
+    _total = _counts.sum()
+    for _k, _c in zip(_unique[:10], _counts[:10]):
+        _rows.append(f"| {int(_k)} | {int(_c)} | {_c/_total:.3f} |")
 
-    table_md = "\n".join(rows)
+    _table_md = "\n".join(_rows)
 
     mo.md(f"""
     ### Neuron frequency specialization
 
     **Checkpoint:** `{chosen_ckpt['label']}`
-    **Distinct frequencies:** {len(unique)} / {len(neuron_dom_freq)}
+    **Distinct frequencies:** {len(_unique)} / {len(_neuron_dom_freq)}
 
     Top 10:
 
-    {table_md}
+    {_table_md}
     """)
     return
 
@@ -277,6 +277,58 @@ def _(chosen_ckpt, config, mo, model, plt, torch):
         - Mean margin: `{mean_margin:.4f}`
         """),
         mo.as_html(fig2)
+    ])
+    return
+
+
+@app.cell
+def _(chosen_ckpt, config, mo, model, np):
+    import plotly.express as px
+
+    # Simple 2D geometric view of number embeddings via PCA (SVD)
+    _p3 = config.p
+    _W_E3 = model.W_E.detach().cpu().numpy()[:_p3, :]  # [p, d_model]
+
+    # Center and compute top-2 PCA components using SVD
+    _X = _W_E3 - _W_E3.mean(axis=0, keepdims=True)
+    _U, _S, _Vt = np.linalg.svd(_X, full_matrices=False)
+    _coords = _X @ _Vt[:2].T  # [p, 2]
+
+    _radii = np.linalg.norm(_coords, axis=1)
+    _mean_r = float(_radii.mean())
+    _std_r = float(_radii.std())
+    _cv_r = _std_r / _mean_r if _mean_r > 0 else 0.0
+
+    _fig_pca = px.scatter(
+        x=_coords[:, 0],
+        y=_coords[:, 1],
+        color=np.arange(_p3),
+        text=[str(i) for i in range(_p3)],
+        color_continuous_scale="hsv",
+        labels={"x": "", "y": "", "color": "token"},
+        title="2D PCA of embeddings (tokens 0..p-1)",
+    )
+    _fig_pca.update_traces(textposition="middle center", marker=dict(size=10, line=dict(width=0.5, color="black")))
+    _fig_pca.update_yaxes(scaleanchor="x", scaleratio=1, showticklabels=False)
+    _fig_pca.update_xaxes(showticklabels=False)
+
+    mo.vstack([
+        mo.md(f"""
+        ### 2D embedding geometry
+
+        **Checkpoint:** `{chosen_ckpt['label']}`
+
+        - Mean radius in PCA plane: `{_mean_r:.3f}`
+        - Radius std: `{_std_r:.3f}`
+        - Coefficient of variation (std / mean): `{_cv_r:.3f}`
+
+        Even for a 100% grokked model this need not be a perfect circle:
+
+        - PCA can mix and rescale the true Fourier `cos`/`sin` directions.
+        - Small extra frequencies and noise dimensions distort the manifold.
+        - The unembedding `W_U` can correct these distortions at the logit level, so logits are exact even if the geometry looks slightly squashed or wobbly here.
+        """),
+        mo.as_html(_fig_pca),
     ])
     return
 
