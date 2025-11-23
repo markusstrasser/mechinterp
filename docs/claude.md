@@ -29,6 +29,7 @@ Key findings:
 
 ## Key Files
 
+- `notebooks/grokking_story.py` - Narrative marimo notebook that tells the grokking story (recommended)
 - `notebooks/grokking_explorer.py` - Interactive marimo notebook for exploring checkpoints
 - `checkpoints/checkpoint_inventory.json` - Manifest of all available checkpoints
 - `CHECKPOINT_STATUS.md` - Human-readable checkpoint summary
@@ -45,7 +46,12 @@ Key points:
 
 ## Running the Project
 
-Start marimo notebook server:
+View the grokking story (narrative, no interaction needed):
+```bash
+uv run marimo edit notebooks/grokking_story.py
+```
+
+Explore checkpoints interactively:
 ```bash
 uv run marimo edit notebooks/grokking_explorer.py
 ```
