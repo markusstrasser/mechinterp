@@ -7,9 +7,14 @@ Documentation for AI assistants working on this project.
 This project analyzes grokking in transformer models trained on modular arithmetic (p=113).
 
 Key findings:
-- Discovered a 2-frequency solution (k=53, k=60)
-- Compared to Nanda et al.'s 5-frequency solution
-- Analyzed 3 training runs: no grok (27% acc), almost grok (98.4% acc), full grok (100% acc)
+- Different seeds discover different Fourier frequency bases (all conjugate pairs where k₁ + k₂ = p)
+  - Seed 42: k=12, 101 → 100% accuracy
+  - Seed 43: k=48, 65 → 94-98% accuracy
+- QK circuit simplifies to rank-1 BEFORE grokking (by step 500)
+- Frequency switching can occur during training (e.g., 38,75 → 12,101)
+- Post-grokking cleanup continues (embedding rank drops even after 100% accuracy)
+- Compared to Nanda et al.'s 5-frequency solution (k=14, 35, 41, 42, 52)
+- Analyzed 4 training runs: no grok (27%), almost grok MPS (98.4%), almost grok CPU (94.5%), full grok (100%)
 
 ## Project Structure
 
