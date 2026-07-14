@@ -1,33 +1,37 @@
 # Grokking via Minimal Fourier Features: A Mechanistic Analysis
 
-**Date:** November 22, 2025
+**Date:** November 22, 2025 (Updated February 2026)
 
 ## Executive Summary
 
-We present a mechanistic analysis of grokking in transformers trained on modular arithmetic (p=113). Our key finding: **models discover a minimal 2-frequency Fourier solution** (k=53, 60) compared to Nanda et al.'s 5-frequency solution for the identical task. This represents a fundamentally different—and more parsimonious—learned algorithm achieving the same computational goal.
+We present a mechanistic analysis of grokking in transformers trained on modular arithmetic (p=113). Models discover sparse Fourier solutions whose frequency count depends on seed: **2 independent frequencies** (k=12, 38) for seed 42 achieving 100% accuracy, vs **1 independent frequency** (k=48) for seed 43 achieving 94-98%. All are much sparser than Nanda et al.'s 5-frequency solution.
 
-**Critical Discovery:** Multiple runs with identical hyperparameters exhibit **11x variation in grokking timing** (3.9k-44k steps) and **variable final accuracy** (98.4%-100%), revealing high sensitivity to initialization and potential multiple solution basins.
+**Note (Feb 2026):** The frequencies originally reported as k=53, 60 were incorrect — those came from an early analysis run that was not properly updated. The corrected frequencies for our primary run (1z2q8rx3, seed 42) are k=12 and k=38. Additionally, due to conjugate symmetry in the FFT of real-valued data (|FFT[k]| = |FFT[p-k]|), these appear as 4 peaks (k=12, 38, 75, 101) but carry only 2 independent pieces of information.
+
+**Critical Discovery:** Multiple runs with identical hyperparameters exhibit **11x variation in grokking timing** (3.9k-44k steps) and **variable final accuracy** (94.5%-100%), revealing high sensitivity to initialization and potential multiple solution basins.
 
 ---
 
 ## 1. Core Findings
 
-### 1.1 Minimal Frequency Solution
+### 1.1 Frequency Solutions
 
-**Our Model (WD=3.0):**
-- **2 frequencies**: k = 53, 60
-- Test accuracy: 98.4%-100%
-- Conjugate pair property: k₁ + k₂ = 113 = p (perfect symmetry)
-- Mathematical properties:
-  - gcd(53, 113) = gcd(60, 113) = 1 (coprime to p)
-  - 53² ≡ 60² ≡ 97 (mod 113) (same quadratic residue)
+**Our Model (WD=3.0, seed 42, run 1z2q8rx3):**
+- **2 independent frequencies**: k=12, k=38
+- FFT peaks (including conjugate mirrors): k=12, 38, 75, 101
+- Test accuracy: 100%
+- Both coprime to p=113
+
+**Our Model (WD=3.0, seed 43, runs e332cujg/l3wye1yc):**
+- **1 independent frequency**: k=48
+- FFT peaks (including mirror): k=48, 65
+- Test accuracy: 94.5-98.4%
 
 **Nanda et al. (ICLR 2023, same p=113):**
 - **5 frequencies**: k = [14, 35, 41, 42, 52]
-- Test accuracy: ~99% (also incomplete!)
-- No obvious symmetry pattern
+- Test accuracy: ~99%
 
-**Implication:** There exist multiple valid Fourier decompositions for the same modular arithmetic task. Our model finds a **maximally sparse** solution.
+**Implication:** There exist multiple valid Fourier decompositions. Our models find sparser solutions than Nanda's, but this likely reflects different training regimes (weight decay strength, training duration) rather than a fundamentally different algorithm. McCracken et al. (NeurIPS 2025) predict O(log p) ≈ 7 frequencies as optimal, while Li et al. (2024) show the max-margin solution uses all (p-1)/2 = 56.
 
 ### 1.2 Sharp Phase Transition at Grokking
 
@@ -37,8 +41,8 @@ We present a mechanistic analysis of grokking in transformers trained on modular
 |--------|---------------|----------------|---------|
 | Test Accuracy | 27% | 98% | +71 pp |
 | Gini Coefficient | 0.071 | 0.475 | 6.7x |
-| Neuron Specialization | Diffuse (~40 freqs) | Concentrated (2 freqs) | ~20x reduction |
-| Excluded Loss (ablating k=53,60) | N/A | 67% drop | Causal |
+| Neuron Specialization | Diffuse (~40 freqs) | Concentrated (2-3 freqs) | ~15-20x reduction |
+| Excluded Loss (ablating dominant freqs) | N/A | 67% drop | Causal |
 
 **Interpretation:** Grokking represents a genuine phase transition where the model rapidly reorganizes from distributed memorization to concentrated algorithmic computation.
 
@@ -51,7 +55,7 @@ We present a mechanistic analysis of grokking in transformers trained on modular
 
 **MLP neuron specialization:**
 - 128 neurons collapse from ~40 active frequencies → 2 frequencies
-- Each neuron becomes a specialist for k=53 or k=60
+- Each neuron becomes a specialist for k=12 or k=38 (seed 42) or k=48 (seed 43)
 - Neuron specialization metric: 0.153 (highly specialized)
 
 ---
@@ -116,7 +120,7 @@ We present a mechanistic analysis of grokking in transformers trained on modular
 | Weight Decay | Test Accuracy | Outcome | Frequency Solution |
 |--------------|---------------|---------|-------------------|
 | 2.0 | 27% | No grokking | Diffuse (~40 freqs) |
-| 3.0 | 98-100% | Full grokking | Sparse (2 freqs: k=53,60) |
+| 3.0 | 98-100% | Full grokking | Sparse (1-2 independent freqs) |
 
 **Interpretation:**
 - WD=2.0: Model stuck in memorization regime, never discovers sparse structure
@@ -151,10 +155,10 @@ This aligns with information bottleneck theory: regularization creates pressure 
 
 | Aspect | Nanda et al. | Our Analysis |
 |--------|--------------|--------------|
-| Frequencies | 5: [14,35,41,42,52] | 2: [53,60] |
-| Symmetry | None obvious | Conjugate pairs (53+60=113) |
-| Final Accuracy | ~99% | 98.4%-100% |
-| Interpretation | Representative solution | Minimal solution |
+| Frequencies | 5: [14,35,41,42,52] | 1-2 independent (seed dependent) |
+| Symmetry | None obvious | Conjugate mirrors (k + (p-k) = 113) |
+| Final Accuracy | ~99% | 94.5%-100% |
+| Interpretation | Standard solution | Sparser, possibly undertrained |
 
 **Key Question:** Why different frequencies for identical task?
 
@@ -183,11 +187,11 @@ For (a + b) mod p:
 2. **Multiply components** (handled by attention & MLP)
 3. **Project back** to answer space
 
-**Why k=53 and k=60?**
+**Why these particular frequencies?**
 - Coprime to p=113 → spans full group
-- Conjugate pair (k₁ + k₂ = p) → perfect symmetry
-- 53² ≡ 60² (mod 113) → shared quadratic structure
-- **Minimal set** needed for complete representation
+- All appear as conjugate pairs (k + (p-k) = p) due to FFT symmetry on real data
+- The specific frequencies (k=12, 38 for seed 42; k=48 for seed 43) are determined by random initialization
+- Tian (NeurIPS 2025) shows the solution space has semi-ring structure; weight decay selects the simplest reachable basin
 
 ### 4.2 Circuit Components
 
@@ -198,7 +202,7 @@ For (a + b) mod p:
 
 **MLP (Feed-forward):**
 - Pre-grok: ~40 active frequencies (memorization)
-- Post-grok: 2 active frequencies (k=53, 60)
+- Post-grok: 2-3 active frequencies (k=12, 38 for seed 42)
 - Function: Implement Fourier basis functions
 - Neuron specialization: Each neuron "tuned" to specific frequency
 
@@ -228,28 +232,27 @@ For (a + b) mod p:
 
 ---
 
-## 5. Novel Contributions
+## 5. Contributions and Limitations
 
-### 5.1 Scientific Contributions
+### 5.1 Observations (in context of 2024-2026 literature)
 
-1. **Minimal Fourier Solution**
-   - First demonstration of 2-frequency grokking (vs Nanda's 5)
-   - Establishes existence of multiple solution types
-   - Raises question: Is minimality a general principle?
+1. **Sparse Fourier Solutions**
+   - ~~First demonstration of 2-frequency grokking~~ → Corrected: seed 42 uses 2 independent frequencies, seed 43 uses 1. Sparsity relative to Nanda's 5-frequency solution likely reflects different training regime, not a fundamentally novel finding.
+   - McCracken et al. (NeurIPS 2025) predict O(log p) ≈ 7 as optimal; Li et al. (2024) show max-margin uses (p-1)/2 = 56. Our models are on the sparse end of a spectrum.
 
-2. **Quantified Phase Transition**
-   - 6.7x Gini coefficient jump
-   - Rank-1 QK circuit collapse
-   - Neuron specialization from 40→2 frequencies
+2. **Ultra-Dense Transition Dynamics**
+   - 449 checkpoints at 20-step resolution provide unusually detailed view of the grokking transition.
+   - Reveals frequency crossover (not switch) dynamics consistent with Ding et al. (2024) Lotka-Volterra model.
+   - Post-grokking cleanup dynamics consistent with Zhang et al. (2025) glass relaxation framework.
 
-3. **Initialization Landscape**
+3. **Initialization Sensitivity**
    - 11x variation in grokking timing with same seed
    - Device-dependent outcomes (CPU vs MPS)
-   - Multiple paths to same final solution
+   - Well-documented by now in the literature (Xu Feb 2026 execution manifolds)
 
 4. **Weight Decay as Bifurcation Parameter**
    - Sharp threshold between grokking (WD=3.0) and memorization (WD=2.0)
-   - Suggests grokking is phase transition in optimization landscape
+   - Consistent with Yunis et al. (ICML 2024) rank minimization framework
 
 ### 5.2 Methodological Contributions
 
@@ -273,9 +276,9 @@ For (a + b) mod p:
 ### 6.1 Critical Unresolved Questions
 
 1. **Why these specific frequencies?**
-   - k=53, 60 vs Nanda's [14,35,41,42,52]
-   - Is there mathematical structure predicting which frequencies emerge?
-   - Can we control which solution is found?
+   - k=12, 38 (seed 42) vs k=48 (seed 43) vs Nanda's [14,35,41,42,52]
+   - Tian (2025) provides a partial answer: semi-ring structure of solution space + initialization determines basin
+   - Can we control which solution is found? (frequency intervention experiments)
 
 2. **Is 98.4% a fundamental limit?**
    - Why do some runs plateau at 98.4%?
@@ -303,7 +306,7 @@ For (a + b) mod p:
    - Identify exact moment of circuit reorganization
 
 2. **Compare 98.4% vs 100% runs**
-   - Frequency analysis: Same k=53,60 or different?
+   - Frequency analysis: Same frequencies or different?
    - Identify misclassified examples in 98.4% run
    - Determine if it's incomplete basis or approximation
 
@@ -427,7 +430,7 @@ Transformer (1-layer, 3-head, decoder-only):
   - How concentrated is each neuron's frequency response?
 
 - **Excluded loss**: Ablation testing
-  - Zero out k=53, 60 frequencies
+  - Zero out dominant frequencies (e.g., k=12, 38 for seed 42 model)
   - Measure accuracy drop → 67% indicates causality
 
 ### 7.4 Reproducibility
@@ -436,14 +439,14 @@ Transformer (1-layer, 3-head, decoder-only):
 - ❌ PyTorch seed alone insufficient (11x timing variation)
 - ❌ Device matters (MPS vs CPU different outcomes)
 - ✓ Weight decay threshold robust (WD=2.0 vs 3.0)
-- ✓ Final frequency solution consistent (k=53, 60)
+- ✓ Final frequency solution consistent per seed (k=12,38 for seed 42; k=48 for seed 43)
 - ✓ Architecture controls well-specified
 
 **For replication:**
 1. Use CPU device (not MPS) for reproducibility
 2. Expect 3.9k-44k step variation in grokking timing
-3. Confirm k=53, 60 frequencies in final model
-4. Verify 98-100% test accuracy as success criterion
+3. Verify sparse Fourier spectrum in final model (Gini > 0.4)
+4. Verify 94-100% test accuracy as success criterion
 
 ---
 
@@ -495,18 +498,20 @@ Transformer (1-layer, 3-head, decoder-only):
 
 ## 10. Conclusion
 
-We demonstrate that transformer grokking on modular arithmetic discovers a **minimal 2-frequency Fourier solution**, substantially sparser than previously reported 5-frequency solutions. This finding reveals:
+We document that transformer grokking on modular arithmetic discovers sparse Fourier solutions whose frequency count (1-2 independent frequencies) is seed-dependent. Our ultra-dense checkpoint data (449 checkpoints, every 20 steps) provides unusually high-resolution dynamics of the grokking transition.
 
-1. **Multiple algorithmic paths** exist for the same computational task
-2. **Regularization drives minimality** - weight decay pressure → sparse solutions
-3. **Grokking is a phase transition** - quantified via 6.7x Gini jump and circuit collapse
-4. **High initialization sensitivity** - 11x timing variation, device dependence
+**Key findings, contextualized:**
+1. **Multiple algorithmic paths** exist for the same task — explained by Tian (2025) semi-ring structure
+2. **Regularization drives sparsity** — consistent with Yunis et al. (2024) rank minimization
+3. **Frequency competition** during transition — consistent with Ding et al. (2024) Lotka-Volterra dynamics
+4. **Post-grokking cleanup** — consistent with Zhang et al. (2025) glass relaxation
 
-**The core mystery remains:** What determines which frequency solution emerges? Is it purely stochastic (initialization chaos) or is there hidden structure (mathematical properties of frequencies, network architecture, optimization dynamics)?
+**What remains genuinely useful in our data:**
+- Ultra-dense checkpoint resolution for testing theoretical predictions
+- Clean demonstration of frequency count ↔ accuracy relationship (1 freq → 94-98%, 2 freqs → 100%)
+- Empirical frequency crossover dynamics that can be directly compared against Lotka-Volterra predictions
 
-**With ultra-dense checkpoints** (every 20 steps), we can now visualize the exact moment of grokking and determine whether the transition is truly discontinuous or a rapid but continuous reorganization.
-
-**For the field:** This work demonstrates that mechanistic interpretability can uncover fundamental differences in how seemingly identical models solve the same problem - differences invisible to accuracy metrics alone.
+**For the field:** Most of our initial "novel" claims have been explained by 2024-2026 theoretical work. The primary value of this dataset is as a high-resolution empirical testbed for these theories.
 
 ---
 
@@ -523,9 +528,9 @@ For a, b ∈ ℤ_p, we can represent:
 Then: (a + b) mod p can be computed via component-wise multiplication in Fourier space.
 
 **Minimal basis requirement:**
-- Need at least 2 frequencies coprime to p for full representation
-- k=53, 60 satisfy: gcd(53,113)=1, gcd(60,113)=1
-- Conjugate property (53+60=113) provides symmetry
+- Need at least 1 frequency coprime to p, though more frequencies improve accuracy
+- Our models use 1-2 independent frequencies, all coprime to p=113
+- Conjugate mirror symmetry: |FFT[k]| = |FFT[p-k]| for real data, so each independent freq appears as a pair of peaks
 
 ### B. Device Dependence Details
 
@@ -568,8 +573,28 @@ top_k_frequencies = torch.topk(magnitude, k=10)
 
 **Findings:**
 - Pre-grok: Flat spectrum, ~40 active frequencies
-- Post-grok: Peaked spectrum, 2 dominant frequencies (k=53, 60)
-- Excluded loss: Zero out k=53,60 → 67% accuracy drop (causal)
+- Post-grok: Peaked spectrum, 2 independent frequencies (k=12, 38 for seed 42)
+- Excluded loss: Zero out dominant frequencies → 67% accuracy drop (causal)
+
+---
+
+## Appendix E. Literature Context (Updated February 2026)
+
+Since this report was originally written (Nov 2025), several important papers have advanced the theoretical understanding of grokking:
+
+| Paper | Venue | Key Finding | Relevance to Our Work |
+|-------|-------|-------------|----------------------|
+| **Ding et al.** "Survival of the Fittest Representation" [2405.17420](https://arxiv.org/abs/2405.17420) | Preprint 2024 | Frequency competition modeled as Lotka-Volterra dynamics | Explains our frequency crossover (k=38 → k=12 dominance shift) |
+| **Li et al.** "Fourier Circuits in Neural Networks" [2402.09469](https://arxiv.org/abs/2402.09469) | AIStats 2025 | Fourier circuits as max-margin solution; width threshold for full margin | Our 128 neurons < threshold of 448 for k=2, p=113 |
+| **Yunis et al.** "Spectral Dynamics of Weights" [2408.11804](https://arxiv.org/abs/2408.11804) | ICML 2024 Workshop / ICLR 2025 | Rank minimization coincides with grokking; spectral dynamics unify phenomena | Matches our embedding rank drop observation |
+| **McCracken et al.** "Universal Algorithm" [2505.18266](https://arxiv.org/abs/2505.18266) | NeurIPS 2025 | Approximate CRT unifies all solutions; O(log n) features for deep networks | Our 1-layer model uses Fourier mechanism, not full CRT |
+| **Zhang et al.** "Glass Relaxation" [2505.11411](https://arxiv.org/abs/2505.11411) | NeurIPS 2025 Spotlight | No entropy barrier — grokking is continuous glass relaxation, not phase transition | Our post-grokking cleanup is consistent with this view |
+| **Tian** "Li₂ Framework" [2509.21519](https://arxiv.org/abs/2509.21519) | Submitted ICLR 2026 | Energy function predicts which frequencies emerge; provable scaling laws | Explains why different seeds find different frequencies |
+| **Xu** "Execution Manifolds" [2602.10496](https://arxiv.org/abs/2602.10496) | Preprint Feb 2026 | Parameter trajectories confined to 3-4 dimensional manifolds | We found 7 PCs for 90% variance — higher than predicted |
+| **Prakash & Martin** "Anti-Grokking" [2602.02859](https://arxiv.org/abs/2602.02859) | Preprint Feb 2026 | Test accuracy can collapse after extended training | Not tested in our runs (max 25k steps) |
+| **Boursier et al.** "Riemannian Norm Minimisation" [2505.20172](https://arxiv.org/abs/2505.20172) | NeurIPS 2025 | Rigorous proof: fast interpolation, then slow Riemannian gradient flow minimizing norm on zero-loss manifold | Provides theoretical foundation for our Phase II compression |
+| **Sakamoto & Sato** "Neural Collapse = Grokking" [2509.20829](https://arxiv.org/abs/2509.20829) | ICLR 2026 | Within-class variance collapse is the key factor unifying grokking and information bottleneck | Validates our RNC1 metric in GROKKING_DYNAMICS_REPORT |
+| **Mallinar et al.** "Grokking in Non-Neural Models" [2407.20199](https://arxiv.org/abs/2407.20199) | ICML 2025 Oral | Fourier solution is a property of the TASK, not the architecture — grokking occurs in kernel machines too | Supports universality of frequency-based solutions |
 
 ---
 

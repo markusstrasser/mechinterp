@@ -7,14 +7,16 @@ Documentation for AI assistants working on this project.
 This project analyzes grokking in transformer models trained on modular arithmetic (p=113).
 
 Key findings:
-- Different seeds discover different Fourier frequency bases (all conjugate pairs where k₁ + k₂ = p)
-  - Seed 42: k=12, 101 → 100% accuracy
-  - Seed 43: k=48, 65 → 94-98% accuracy
+- Different seeds discover different Fourier frequency bases
+  - Seed 42: k=12, k=38 (2 independent freqs) → 100% accuracy
+  - Seed 43: k=48 (1 independent freq) → 94-98% accuracy
+  - Note: FFT symmetry on real data means |FFT[k]| = |FFT[p-k]|, so each freq appears as a conjugate pair of peaks
 - QK circuit simplifies to rank-1 BEFORE grokking (by step 500)
-- Frequency switching can occur during training (e.g., 38,75 → 12,101)
+- Frequency crossover (not switch) occurs during training — both k=12 and k=38 present throughout, relative power shifts
 - Post-grokking cleanup continues (embedding rank drops even after 100% accuracy)
 - Compared to Nanda et al.'s 5-frequency solution (k=14, 35, 41, 42, 52)
 - Analyzed 4 training runs: no grok (27%), almost grok MPS (98.4%), almost grok CPU (94.5%), full grok (100%)
+- See FINDINGS.md for literature context (Ding, Li, McCracken, Tian, Zhang, Xu, Prakash & Martin)
 
 ## Project Structure
 
@@ -38,6 +40,7 @@ Key findings:
 - `notebooks/grokking_explorer.py` - Interactive marimo notebook for exploring checkpoints
 - `checkpoints/checkpoint_inventory.json` - Manifest of all available checkpoints
 - `CHECKPOINT_STATUS.md` - Human-readable checkpoint summary
+- `scripts/literature_validation.py` - Execution manifold, frequency analysis, ablation experiments
 - `pyproject.toml` - Project dependencies and marimo configuration
 
 ## Working with Marimo Notebooks
